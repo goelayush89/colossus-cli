@@ -1,0 +1,64 @@
+# Colossus Configuration Example
+# Copy this file to ~/.colossus.yaml and customize as needed
+
+# Server configuration
+host: "127.0.0.1"         # Host to bind the server to
+port: 11434               # Port to bind the server to
+
+# Model storage configuration
+models_path: "~/.colossus/models"  # Directory to store downloaded models
+
+# Logging configuration
+verbose: false             # Enable verbose logging
+
+# Model inference configuration
+inference:
+  # Default options for model inference
+  temperature: 0.7         # Sampling temperature (0.0 to 1.0)
+  top_p: 0.9              # Nucleus sampling threshold
+  top_k: 40               # Top-k sampling
+  num_predict: 128        # Maximum number of tokens to predict
+  
+  # Context configuration
+  context_size: 2048      # Context window size
+  batch_size: 512         # Batch size for processing
+  
+  # Performance tuning
+  num_threads: 0          # Number of threads (0 = auto-detect)
+  num_gpu_layers: 0       # Number of layers to offload to GPU
+
+# Model registry configuration
+registry:
+  # Default model registry URLs
+  huggingface: "https://huggingface.co"
+  
+  # Custom model mappings
+  models:
+    tinyllama: "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.q4_k_m.gguf"
+    phi2: "microsoft/phi-2/resolve/main/pytorch_model.bin"
+    
+# Security configuration
+security:
+  # API key for authentication (optional)
+  api_key: ""
+  
+  # Allowed origins for CORS
+  cors_origins: ["*"]
+  
+  # Rate limiting
+  rate_limit:
+    enabled: false
+    requests_per_minute: 60
+
+# Advanced configuration
+advanced:
+  # Memory management
+  max_memory_usage: "8GB"
+  
+  # Model loading
+  lazy_loading: true      # Load models on first use
+  model_timeout: "5m"     # Timeout for model operations
+  
+  # Cache configuration
+  cache_enabled: true
+  cache_size: "1GB"
