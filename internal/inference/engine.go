@@ -119,34 +119,73 @@ func (e *SimulatedEngine) Chat(req *types.ChatRequest) (*types.ChatResponse, err
 
 // simulateResponse generates a simulated response (for demo purposes)
 func simulateResponse(prompt string) string {
-	// This is a simple simulation - in reality, this would be actual model inference
-	responses := []string{
-		"I understand your question about: " + prompt,
-		"That's an interesting point. Let me think about it...",
-		"Based on the context you provided, I would say...",
-		"Thank you for asking! Here's my response to your query...",
+	// Enhanced simulation with more realistic responses
+	// Note: This is simulated inference - for real inference, compile with llama.cpp
+	
+	lowerPrompt := strings.ToLower(prompt)
+	
+	// Greeting responses
+	if strings.Contains(lowerPrompt, "hi") || strings.Contains(lowerPrompt, "hello") {
+		return "Hello! I'm a simulated AI assistant. How can I help you today? (Note: This is simulated - for real inference, enable llama.cpp)"
 	}
 	
-	// Simple hash-based selection for consistent responses
+	// Question responses
+	if strings.Contains(lowerPrompt, "how are you") {
+		return "I'm doing well, thank you for asking! I'm currently running in simulation mode. What can I help you with?"
+	}
+	
+	if strings.Contains(lowerPrompt, "what") && strings.Contains(lowerPrompt, "name") {
+		return "I'm Colossus CLI's simulated assistant. In real mode, I would be the qwen model you downloaded."
+	}
+	
+	if strings.Contains(lowerPrompt, "tell me about") {
+		return "I'd be happy to help! However, I'm currently running in simulation mode. For real AI responses, please compile Colossus with llama.cpp support."
+	}
+	
+	// Programming/coding questions
+	if strings.Contains(lowerPrompt, "code") || strings.Contains(lowerPrompt, "programming") {
+		return "I can help with coding questions! Though I'm in simulation mode right now, the real qwen model you downloaded is great for programming tasks."
+	}
+	
+	// Math questions
+	if strings.Contains(lowerPrompt, "math") || strings.Contains(lowerPrompt, "calculate") {
+		return "I can help with math problems! In real inference mode, I'd be able to solve complex calculations for you."
+	}
+	
+	// Help/assistance
+	if strings.Contains(lowerPrompt, "help") {
+		return "I'm here to help! Currently running in simulation mode. To get real AI responses, compile Colossus with llama.cpp integration."
+	}
+	
+	// Goodbye
+	if strings.Contains(lowerPrompt, "bye") || strings.Contains(lowerPrompt, "goodbye") {
+		return "Goodbye! Thanks for trying Colossus CLI. Enable llama.cpp for real AI conversations!"
+	}
+	
+	// Default responses based on prompt characteristics
+	if len(prompt) > 100 {
+		return "That's quite a detailed message! I'm currently in simulation mode, but the real qwen model would provide a thoughtful response to your query."
+	}
+	
+	if strings.Contains(lowerPrompt, "?") {
+		return "That's a great question! In real inference mode, I'd analyze your question carefully and provide a detailed answer."
+	}
+	
+	// Fallback responses that acknowledge simulation
+	fallbacks := []string{
+		"I hear you! I'm currently running in simulation mode. For real AI responses, enable llama.cpp integration.",
+		"Interesting! While I'm simulating responses right now, the qwen model you downloaded would handle this well in real mode.",
+		"Thanks for your message! I'm in simulation mode - the real qwen model would provide much better responses.",
+		"I understand! Currently simulating responses, but your downloaded qwen model is ready for real inference.",
+	}
+	
+	// Simple hash for consistent responses
 	hash := 0
 	for _, c := range prompt {
 		hash += int(c)
 	}
 	
-	baseResponse := responses[hash%len(responses)]
-	
-	// Add some context based on the prompt
-	if strings.Contains(strings.ToLower(prompt), "hello") {
-		return "Hello! How can I help you today?"
-	}
-	if strings.Contains(strings.ToLower(prompt), "how") {
-		return "That's a great question! " + baseResponse
-	}
-	if strings.Contains(strings.ToLower(prompt), "what") {
-		return "Let me explain: " + baseResponse
-	}
-	
-	return baseResponse
+	return fallbacks[hash%len(fallbacks)]
 }
 
 // GenerateStream generates text with streaming support

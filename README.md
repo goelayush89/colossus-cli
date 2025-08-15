@@ -17,12 +17,27 @@ A powerful Go-based alternative to Ollama for running large language models loca
 
 ## Quick Start
 
-### Installation
+### 📥 Installation
 
+#### Download Pre-built Binary (Recommended)
+Visit our **[Download Page](https://yourusername.github.io/colossus-cli)** for pre-built binaries:
+
+- **Windows**: `colossus-windows-amd64.exe`
+- **macOS (Intel)**: `colossus-darwin-amd64`
+- **macOS (Apple Silicon)**: `colossus-darwin-arm64`
+- **Linux (x64)**: `colossus-linux-amd64`
+- **Linux (ARM64)**: `colossus-linux-arm64`
+
+Or download from [GitHub Releases](https://github.com/yourusername/colossus-cli/releases/latest).
+
+#### Build from Source
 ```bash
 # Clone the repository
 git clone <your-repo-url>
 cd colossus-cli
+
+# Initialize submodules
+git submodule update --init --recursive
 
 # Build the application
 go build -o colossus

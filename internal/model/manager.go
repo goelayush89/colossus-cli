@@ -96,6 +96,11 @@ func (m *Manager) PullModel(name string) error {
 func (m *Manager) PullModelWithProgress(name string, progressCallback ProgressCallback) error {
 	logrus.Infof("Pulling model: %s", name)
 	
+	// Try popular GGUF repositories first
+	if err := m.tryPopularGGUFRepositories(name, progressCallback); err == nil {
+		return nil
+	}
+	
 	// First, try to download from Hugging Face Hub
 	if strings.Contains(name, "/") {
 		// Model name contains "/" so it's likely a Hugging Face model ID
@@ -128,6 +133,60 @@ func (m *Manager) PullModelWithProgress(name string, progressCallback ProgressCa
 	logrus.Infof("Found model: %s (downloads: %d)", bestMatch.ID, bestMatch.Downloads)
 	
 	return m.downloadFromHuggingFace(bestMatch.ID, progressCallback)
+}
+
+// tryPopularGGUFRepositories tries to download from known GGUF model repositories
+func (m *Manager) tryPopularGGUFRepositories(name string, progressCallback ProgressCallback) error {
+	// Popular GGUF model repositories and their model mappings
+	ggufRepos := map[string][]string{
+		"tinyllama": {
+			"https://huggingface.co/microsoft/DialoGPT-medium/resolve/main/pytorch_model.bin", // fallback
+			"https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.q4_k_m.gguf",
+			"https://huggingface.co/QuantFactory/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/TinyLlama-1.1B-Chat-v1.0.q4_k_m.gguf",
+		},
+		"llama2": {
+			"https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/main/llama-2-7b-chat.q4_k_m.gguf",
+			"https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.q4_k_m.gguf",
+		},
+		"phi": {
+			"https://huggingface.co/microsoft/phi-2/resolve/main/model.safetensors", // fallback
+			"https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.q4_k_m.gguf",
+		},
+		"mistral": {
+			"https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.q4_k_m.gguf",
+		},
+		"codellama": {
+			"https://huggingface.co/TheBloke/CodeLlama-7B-Instruct-GGUF/resolve/main/codellama-7b-instruct.q4_k_m.gguf",
+		},
+		"gemma": {
+			"https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf",
+		},
+		"qwen": {
+			"https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/main/qwen2-0_5b-instruct-q4_k_m.gguf",
+		},
+	}
+	
+	// Check if we have URLs for this model
+	urls, exists := ggufRepos[strings.ToLower(name)]
+	if !exists {
+		return fmt.Errorf("model not found in popular GGUF repositories")
+	}
+	
+	// Try each URL until one works
+	for i, url := range urls {
+		logrus.Infof("Trying popular GGUF repository %d/%d: %s", i+1, len(urls), url)
+		
+		modelPath := filepath.Join(m.modelsPath, name+".gguf")
+		err := m.downloadFileWithProgress(url, modelPath, name, progressCallback)
+		if err == nil {
+			logrus.Infof("Successfully downloaded %s from popular GGUF repository", name)
+			return nil
+		}
+		
+		logrus.Warnf("Failed to download from %s: %v", url, err)
+	}
+	
+	return fmt.Errorf("failed to download from all popular GGUF repositories")
 }
 
 // RemoveModel removes a model from local storage

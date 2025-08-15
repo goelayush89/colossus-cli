@@ -22,20 +22,13 @@ const (
 // NewEngine creates an inference engine based on configuration
 func NewEngine(engineType EngineType) InferenceEngine {
 	switch engineType {
-	case EngineTypeLlamaCpp:
-		// Check if llama.cpp bindings are available
-		if isLlamaCppAvailable() {
-			logrus.Info("Creating llama.cpp inference engine")
-			return NewLlamaCppEngine()
-		} else {
-			logrus.Warn("llama.cpp not available, falling back to simulated engine")
-			return NewSimulatedEngine()
-		}
 	case EngineTypeSimulated:
-		fallthrough
-	default:
-		logrus.Info("Creating simulated inference engine")
+		logrus.Warn("Using simulated inference engine - for testing only")
 		return NewSimulatedEngine()
+	default:
+		// Always try llama.cpp for real inference
+		logrus.Info("Creating llama.cpp inference engine")
+		return NewLlamaCppEngine()
 	}
 }
 
@@ -44,13 +37,12 @@ func GetEngineTypeFromEnv() EngineType {
 	engineType := strings.ToLower(os.Getenv("COLOSSUS_INFERENCE_ENGINE"))
 	
 	switch engineType {
-	case "llamacpp", "llama.cpp", "llama_cpp":
-		return EngineTypeLlamaCpp
 	case "simulated", "demo", "test":
+		logrus.Warn("Simulated engine explicitly requested - this is for testing only")
 		return EngineTypeSimulated
 	default:
-		// Default to simulated for now, switch to llamacpp when bindings are integrated
-		return EngineTypeSimulated
+		// Default to llama.cpp for real inference
+		return EngineTypeLlamaCpp
 	}
 }
 

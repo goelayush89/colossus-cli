@@ -1,3 +1,5 @@
+//go:build cgo && llamacpp_cgo
+
 package llama
 
 /*

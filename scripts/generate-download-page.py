@@ -1,0 +1,294 @@
+#!/usr/bin/env python3
+"""
+Generate GitHub Pages download page for Colossus CLI
+"""
+
+import os
+import json
+from datetime import datetime
+
+def get_file_size(filepath):
+    """Get file size in MB"""
+    try:
+        size = os.path.getsize(filepath)
+        return f"{size / (1024 * 1024):.1f}"
+    except:
+        return "N/A"
+
+def generate_download_page():
+    """Generate the download page HTML"""
+    
+    # Get build artifacts
+    artifacts = []
+    dist_dir = "dist"
+    
+    if os.path.exists(dist_dir):
+        for root, dirs, files in os.walk(dist_dir):
+            for file in files:
+                if file.startswith("colossus-") and not file.endswith(".txt"):
+                    filepath = os.path.join(root, file)
+                    size = get_file_size(filepath)
+                    artifacts.append({
+                        "name": file,
+                        "path": filepath,
+                        "size": size
+                    })
+    
+    # Generate HTML
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colossus CLI - Download</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }}
+        .container {{ 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }}
+        .header h1 {{
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }}
+        .header p {{
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }}
+        .download-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }}
+        .download-card {{
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }}
+        .download-card:hover {{
+            transform: translateY(-5px);
+        }}
+        .platform-icon {{
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }}
+        .platform-title {{
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }}
+        .download-btn {{
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            margin: 5px 0;
+            width: 100%;
+            text-align: center;
+        }}
+        .download-btn:hover {{
+            transform: scale(1.05);
+        }}
+        .file-info {{
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }}
+        .instructions {{
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }}
+        .instructions h3 {{
+            color: #2d3748;
+            margin-bottom: 15px;
+        }}
+        .instructions pre {{
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }}
+        .features {{
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }}
+        .features h3 {{
+            color: #2d3748;
+            margin-bottom: 15px;
+        }}
+        .feature-list {{
+            list-style: none;
+        }}
+        .feature-list li {{
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }}
+        .feature-list li:before {{
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }}
+        .footer {{
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }}
+        .github-link {{
+            color: white;
+            text-decoration: none;
+        }}
+        .github-link:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Colossus CLI</h1>
+            <p>A powerful Go-based alternative to Ollama for running LLMs locally</p>
+        </div>
+
+        <div class="download-grid">
+            <!-- Windows -->
+            <div class="download-card">
+                <div class="platform-icon">🪟</div>
+                <div class="platform-title">Windows</div>
+                <p>For Windows 10/11 (64-bit)</p>
+                <a href="https://github.com/user/colossus-cli/releases/latest/download/colossus-windows-amd64.exe" class="download-btn">
+                    Download for Windows
+                </a>
+                <div class="file-info">colossus-windows-amd64.exe</div>
+            </div>
+
+            <!-- macOS Intel -->
+            <div class="download-card">
+                <div class="platform-icon">🍎</div>
+                <div class="platform-title">macOS (Intel)</div>
+                <p>For Intel-based Macs</p>
+                <a href="https://github.com/user/colossus-cli/releases/latest/download/colossus-darwin-amd64" class="download-btn">
+                    Download for macOS (Intel)
+                </a>
+                <div class="file-info">colossus-darwin-amd64</div>
+            </div>
+
+            <!-- macOS Apple Silicon -->
+            <div class="download-card">
+                <div class="platform-icon">🍎</div>
+                <div class="platform-title">macOS (Apple Silicon)</div>
+                <p>For M1/M2/M3 Macs</p>
+                <a href="https://github.com/user/colossus-cli/releases/latest/download/colossus-darwin-arm64" class="download-btn">
+                    Download for macOS (M1/M2/M3)
+                </a>
+                <div class="file-info">colossus-darwin-arm64</div>
+            </div>
+
+            <!-- Linux -->
+            <div class="download-card">
+                <div class="platform-icon">🐧</div>
+                <div class="platform-title">Linux</div>
+                <p>For Linux distributions (64-bit)</p>
+                <a href="https://github.com/user/colossus-cli/releases/latest/download/colossus-linux-amd64" class="download-btn">
+                    Download for Linux (x64)
+                </a>
+                <a href="https://github.com/user/colossus-cli/releases/latest/download/colossus-linux-arm64" class="download-btn">
+                    Download for Linux (ARM64)
+                </a>
+                <div class="file-info">Multiple architectures available</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Quick Start</h3>
+            
+            <h4>Windows:</h4>
+            <pre>1. Download colossus-windows-amd64.exe
+2. Open PowerShell and run:
+   .\\colossus-windows-amd64.exe --help</pre>
+
+            <h4>macOS/Linux:</h4>
+            <pre>1. Download the appropriate binary
+2. Make it executable:
+   chmod +x colossus-*
+3. Move to PATH (optional):
+   sudo mv colossus-* /usr/local/bin/colossus
+4. Run:
+   colossus --help</pre>
+
+            <h4>Start the Server:</h4>
+            <pre>colossus serve</pre>
+
+            <h4>Download a Model:</h4>
+            <pre>colossus models pull tinyllama</pre>
+
+            <h4>Start Chatting:</h4>
+            <pre>colossus chat tinyllama</pre>
+        </div>
+
+        <div class="features">
+            <h3>✨ Features</h3>
+            <ul class="feature-list">
+                <li>🔥 Full Ollama API compatibility</li>
+                <li>⚡ Real inference with llama.cpp integration</li>
+                <li>🚀 GPU acceleration (CUDA/ROCm/Metal)</li>
+                <li>🤗 Hugging Face Hub integration</li>
+                <li>📦 Automatic model management</li>
+                <li>🛡️ Model format validation</li>
+                <li>📊 Progress tracking for downloads</li>
+                <li>💬 Interactive chat sessions</li>
+                <li>🌐 REST API for integrations</li>
+                <li>🔧 Easy configuration management</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>
+                Built with ❤️ | 
+                <a href="https://github.com/user/colossus-cli" class="github-link">View on GitHub</a> | 
+                <a href="https://github.com/user/colossus-cli/issues" class="github-link">Report Issues</a>
+            </p>
+            <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        </div>
+    </div>
+</body>
+</html>"""
+
+    # Write to docs directory
+    os.makedirs("docs", exist_ok=True)
+    with open("docs/index.html", "w", encoding="utf-8") as f:
+        f.write(html_content)
+    
+    print("✅ Generated docs/index.html")
+
+if __name__ == "__main__":
+    generate_download_page()

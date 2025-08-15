@@ -1,0 +1,157 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            suffix: ""
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            suffix: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            suffix: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            suffix: ""
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            suffix: ".exe"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        # Xcode command line tools should be available
+
+    - name: Build binary
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        CGO_ENABLED: "0"
+      run: |
+        mkdir -p dist
+        go build -ldflags "-s -w -X main.version=${{ github.ref_name }}" -o dist/colossus-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }} .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: colossus-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: dist/colossus-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: dist/
+
+    - name: Create checksums
+      run: |
+        cd dist
+        find . -name "colossus-*" -type f -exec sha256sum {} \; > checksums.txt
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/*/colossus-*
+          dist/checksums.txt
+        body: |
+          ## Download Colossus CLI
+          
+          Choose the appropriate binary for your system:
+          
+          ### Windows
+          - **Windows (64-bit)**: `colossus-windows-amd64.exe`
+          
+          ### macOS
+          - **macOS (Intel)**: `colossus-darwin-amd64`
+          - **macOS (Apple Silicon)**: `colossus-darwin-arm64`
+          
+          ### Linux
+          - **Linux (64-bit)**: `colossus-linux-amd64`
+          - **Linux (ARM64)**: `colossus-linux-arm64`
+          
+          ### Installation
+          
+          1. Download the appropriate binary
+          2. Make it executable (Linux/macOS): `chmod +x colossus-*`
+          3. Move to PATH: `sudo mv colossus-* /usr/local/bin/colossus`
+          4. Run: `colossus --help`
+          
+          ### What's New
+          - Full Ollama API compatibility
+          - Real inference with llama.cpp integration
+          - GPU acceleration support (CUDA/ROCm/Metal)
+          - Hugging Face Hub integration
+          - Model management and validation
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-pages:
+    name: Update GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: dist/
+
+    - name: Generate download page
+      run: |
+        mkdir -p docs
+        python3 scripts/generate-download-page.py
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
