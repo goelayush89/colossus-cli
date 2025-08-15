@@ -208,9 +208,6 @@ To integrate with different inference engines (like llama.cpp, ONNX, etc.),
 implement the interface in `internal/inference/engine.go`.
 
 ## Compatibility
-
-Colossus aims to be a drop-in replacement for Ollama. It supports:
-
 - ✅ Chat completions API
 - ✅ Text generation API  
 - ✅ Model management API
@@ -218,47 +215,3 @@ Colossus aims to be a drop-in replacement for Ollama. It supports:
 - ✅ Model pulling/pushing
 - 🚧 Custom model formats (in progress)
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Roadmap
-
-- [x] Integration with llama.cpp for real inference
-- [x] GPU acceleration (CUDA/ROCm)
-- [x] Automatic GPU detection and configuration
-- [ ] Complete llama.cpp Go bindings integration
-- [ ] Support for more model formats (ONNX, TensorFlow)
-- [ ] Model quantization support
-- [ ] Apple Metal support
-- [ ] Multi-GPU tensor parallelism
-- [ ] Model registry integration (Hugging Face Hub)
-- [ ] Web UI interface
-- [ ] Docker support with GPU passthrough
-- [ ] Advanced performance optimizations
-- [ ] Model fine-tuning capabilities
-
-## FAQ
-
-**Q: How is this different from Ollama?**
-A: Colossus is built in Go for better performance and easier deployment, while maintaining API compatibility.
-
-**Q: Can I use my existing Ollama models?**
-A: Yes! Colossus uses the same model formats and storage structure.
-
-**Q: Does it support GPU acceleration?**
-A: Yes! Colossus supports NVIDIA CUDA and AMD ROCm GPU acceleration with automatic detection and configuration.
-
-**Q: How do I enable GPU acceleration?**
-A: Set `COLOSSUS_INFERENCE_ENGINE=llamacpp` and run `colossus gpu info` to check GPU availability. GPU acceleration is automatically configured when available.
-
-**Q: Is it production ready?**
-A: The architecture is production-ready, but you'll need to complete the llama.cpp Go bindings integration for full functionality. Currently includes simulated inference for testing.
